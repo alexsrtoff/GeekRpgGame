@@ -16,7 +16,7 @@ public class Hero {
     public  Hero(){
         this.texture = new Texture("hero.png");
         this.position = new Vector2(100, 100);
-        this.speed = 100.0f;
+        this.speed = 60.0f;
     }
 
     public void render(SpriteBatch batch){
@@ -24,24 +24,21 @@ public class Hero {
     }
 
     public void update(float dt){
-//        if(Gdx.input.justTouched()){
-//            position.set(Gdx.input.getX(), 640 - Gdx.input.getY());
-//        }
-//        for (int i = 0; i < Gdx.input.getX() ; i++) {
-//            position.x += speed * dt;
-//        }
-        if(Gdx.input.isKeyPressed(Input.Keys.A)){
-            position.x -= speed * dt;
-        }
-        if(Gdx.input.isKeyPressed(Input.Keys.D)){
-            position.x += speed * dt;
-        }
-        if(Gdx.input.isKeyPressed(Input.Keys.W)){
-            position.y += speed * dt;
-        }
-        if(Gdx.input.isKeyPressed(Input.Keys.S)){
-            position.y -= speed * dt;
-        }
 
-    }
+        if(Gdx.input.isTouched()){
+            if(Gdx.input.getX() > position.x){
+                position.x += speed * dt;
+            }
+            if(Gdx.input.getX() < position.x){
+                position.x -= speed * dt;
+            }
+
+            if(640 - Gdx.input.getY() >= position.y){
+                position.y += speed * dt;
+            }
+            if(640 - Gdx.input.getY() < position.y){
+                position.y -= speed * dt;
+            }
+        }
+   }
 }
