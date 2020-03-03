@@ -4,55 +4,57 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 public class GeekRpgGame extends ApplicationAdapter {
 	private SpriteBatch batch;
-	private  Hero hero;
-	private Texture textureGrass;
-	private Texture texturePointer;
-	private Vector2 pointerPosition;
-	private  float rt;
+	private BitmapFont font32;
+	private TextureAtlas atlas;
+	private TextureRegion textureGrass;
+	private Hero hero;
+
+	// Домашнее задание:
+	// 0. Разобраться с кодом
+	// 1. Добавить на экран яблоко, и попробовать отследить попадание
+	// стрелы в яблоко, при попадании яблоко должно появиться в новом месте
+	// 2. ** Попробуйте заставить героя выпускать по несколько стрел
 
 	@Override
-	public void create () {
-		batch = new SpriteBatch();
-		hero = new Hero();
-		textureGrass = new Texture("grass.png");
-		texturePointer = new Texture("pointer.png");
-		pointerPosition = new Vector2(0,0);
+	public void create() {
+		this.batch = new SpriteBatch();
+		this.atlas = new TextureAtlas("game.pack");
+		this.hero = new Hero(atlas);
+		this.textureGrass = atlas.findRegion("grass");
+		this.font32 = new BitmapFont(Gdx.files.internal("font32.fnt"));
 	}
 
 	@Override
-	public void render () {
+	public void render() {
 		float dt = Gdx.graphics.getDeltaTime();
 		update(dt);
-		Gdx.gl.glClearColor(1, 1, 1, 1);
+		Gdx.gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		batch.begin();
 		for (int i = 0; i < 13; i++) {
 			for (int j = 0; j < 8; j++) {
-				batch.draw(textureGrass, i * 80,j * 80);
+				batch.draw(textureGrass, i * 80, j * 80);
 			}
 		}
-		batch.draw(texturePointer, pointerPosition.x - 32, pointerPosition.y - 32,32,32,64,64,1,1,rt,0,0,64,64,false,false);
 		hero.render(batch);
+		hero.renderGUI(batch, font32);
 		batch.end();
 	}
 
-	public void update(float dt){
-		rt += dt * 90;
+	public void update(float dt) {
 		hero.update(dt);
-
-		if(Gdx.input.isTouched()){
-			pointerPosition.set(Gdx.input.getX(), 640 - Gdx.input.getY());
-		}
 	}
 
-	
 	@Override
-	public void dispose () {
+	public void dispose() {
 		batch.dispose();
 	}
 }
