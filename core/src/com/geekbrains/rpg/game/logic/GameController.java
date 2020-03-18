@@ -2,13 +2,18 @@ package com.geekbrains.rpg.game.logic;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.geekbrains.rpg.game.screens.GameScreen;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameController {
+    private GameScreen gameScreen;
+
     private ProjectilesController projectilesController;
     private MonstersController monstersController;
+    private WeaponsController weaponsController;
+    private ItemsController itemsController;
     private List<GameCharacter> allCharacters;
     private Map map;
     private Hero hero;
@@ -34,9 +39,19 @@ public class GameController {
         return projectilesController;
     }
 
+    public WeaponsController getWeaponsController() {
+        return weaponsController;
+    }
+
+    public ItemsController getItemsController() {
+        return itemsController;
+    }
+
     public GameController() {
         this.allCharacters = new ArrayList<>();
         this.projectilesController = new ProjectilesController();
+        this.weaponsController = new WeaponsController(this);
+        this.itemsController = new ItemsController(this);
         this.hero = new Hero(this);
         this.map = new Map();
         this.monstersController = new MonstersController(this, 5);
@@ -44,15 +59,18 @@ public class GameController {
         this.tmp2 = new Vector2(0, 0);
     }
 
-    public void update(float dt) {
-        allCharacters.clear();
-        allCharacters.add(hero);
-        allCharacters.addAll(monstersController.getActiveList());
 
-        hero.update(dt);
-        monstersController.update(dt);
-        checkCollisions();
-        projectilesController.update(dt);
+    public void update(float dt) {
+            allCharacters.clear();
+            allCharacters.add(hero);
+            allCharacters.addAll(monstersController.getActiveList());
+
+            hero.update(dt);
+            monstersController.update(dt);
+            checkCollisions();
+            projectilesController.update(dt);
+            weaponsController.update(dt);
+            itemsController.update(dt);
     }
 
     public void collideUnits(GameCharacter u1, GameCharacter u2) {
@@ -86,6 +104,19 @@ public class GameController {
                 collideUnits(m, m2);
             }
         }
+        for (int i = 0; i < weaponsController.getActiveList().size(); i++) {
+            Weapon w = weaponsController.getActiveList().get(i);
+            if (hero.getPosition().dst(w.getPosition()) < 20) {
+                w.consume(hero);
+            }
+        }
+
+        for (int i = 0; i < itemsController.getActiveList().size(); i++) {
+            Item item = itemsController.getActiveList().get(i);
+            if (hero.getPosition().dst(item.getPosition()) < 20) {
+                item.consume(this);
+            }
+        }
 
         for (int i = 0; i < projectilesController.getActiveList().size(); i++) {
             Projectile p = projectilesController.getActiveList().get(i);
@@ -95,7 +126,7 @@ public class GameController {
             }
             if (p.getPosition().dst(hero.getPosition()) < 24 && p.getOwner() != hero) {
                 p.deactivate();
-                hero.takeDamage(p.getOwner(), p.getOwner().weapon.getDamage());
+                hero.takeDamage(p.getOwner(), p.getDamage());
             }
             for (int j = 0; j < monstersController.getActiveList().size(); j++) {
                 Monster m = monstersController.getActiveList().get(j);
@@ -104,9 +135,7 @@ public class GameController {
                 }
                 if (p.getPosition().dst(m.getPosition()) < 24) {
                     p.deactivate();
-                    if (m.takeDamage(p.getOwner(), p.getOwner().weapon.getDamage())) {
-                        hero.addCoins(MathUtils.random(1, 10));
-                    }
+                    m.takeDamage(p.getOwner(), p.getDamage());
                 }
             }
         }
