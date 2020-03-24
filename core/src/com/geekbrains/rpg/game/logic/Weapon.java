@@ -13,12 +13,47 @@ import com.geekbrains.rpg.game.screens.utils.Assets;
 
 public class Weapon implements MapElement, Poolable, Consumable {
 
+    public enum WeaponClass {
+        SWORD, SPEAR, AXE, MACE, BOW, CROSSBOW;
 
-    public enum Type {
-        MELEE, RANGED
+        public static WeaponClass fromString(String in) {
+            switch (in) {
+                case "SWORD":
+                    return SWORD;
+                case "SPEAR":
+                    return SPEAR;
+                case "AXE":
+                    return AXE;
+                case "MACE":
+                    return MACE;
+                case "BOW":
+                    return BOW;
+                case "CROSSBOW":
+                    return CROSSBOW;
+                default:
+                    throw new RuntimeException("Unknown weapon class");
+            }
+        }
     }
 
+    public enum Type {
+        MELEE, RANGED;
+
+        public static Type fromString(String in) {
+            switch (in) {
+                case "MELEE":
+                    return MELEE;
+                case "RANGED":
+                    return RANGED;
+                default:
+                    throw new RuntimeException("Unknown weapon type");
+            }
+        }
+    }
+
+    private GameController gc;
     private TextureRegion texture;
+    private WeaponClass weaponClass;
     private Type type;
     private String title;
     private Vector2 position;
@@ -28,37 +63,63 @@ public class Weapon implements MapElement, Poolable, Consumable {
     private float range;
     private boolean active;
 
+    public void setMinDamage(int minDamage) {
+        this.minDamage = minDamage;
+    }
+
+    public void setMaxDamage(int maxDamage) {
+        this.maxDamage = maxDamage;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public void setRange(float range) {
+        this.range = range;
+    }
+
     @Override
     public boolean isActive() {
         return active;
+    }
+
+    public void activate() {
+        this.active = true;
     }
 
     public Vector2 getPosition() {
         return position;
     }
 
+    public String getDps() {
+        return String.valueOf((int) ((maxDamage + minDamage) / 2.0f / speed));
+    }
+
     @Override
     public void consume(GameCharacter gameCharacter) {
-        gameCharacter.setWeapon(this);
+        gameCharacter.getWeapon().copyFrom(this);
         active = false;
     }
 
     @Override
-    public void render(SpriteBatch batch, BitmapFont font) {
-        batch.draw(texture, position.x - 32, position.y - 32);
-    }
-
-    @Override
     public int getCellX() {
-        return (int) (position.x / 80);
+        return (int) (position.x / Map.CELL_WIDTH);
     }
 
     @Override
     public int getCellY() {
-        return (int) (position.y / 80);
+        return (int) (position.y / Map.CELL_HEIGHT);
     }
 
-    public Type getType() { return type;}
+    @Override
+    public float getY() {
+        return position.y;
+    }
+
+    public Type getType() {
+        return type;
+    }
 
     public String getTitle() {
         return title;
@@ -88,54 +149,41 @@ public class Weapon implements MapElement, Poolable, Consumable {
         this.position.set(x, y);
     }
 
-    public Weapon() {
+    public Weapon(GameController gc) {
+        this.gc = gc;
         this.position = new Vector2(0, 0);
     }
 
-    public Weapon(Type type, String title, int minDamage, int maxDamage, float speed, float range) {
-        this.type = type;
-        this.title = title;
-        this.minDamage = minDamage;
-        this.maxDamage = maxDamage;
-        this.speed = speed;
-        this.range = range;
-    }
-
-    public void setup(Type type, String title, int minDamage, int maxDamage, float speed, float range) {
-        this.type = type;
-        if (type == Type.MELEE) {
+    // CLASS ,TYPE  ,TITLE ,MIN_DAMAGE, MAX_DAMAGE, SPEED, RANGE
+    public Weapon(String line) {
+        String[] tokens = line.split(",");
+        this.weaponClass = WeaponClass.fromString(tokens[0].trim());
+        this.type = Type.fromString(tokens[1].trim());
+        this.title = tokens[2].trim();
+        this.minDamage = Integer.parseInt(tokens[3].trim());
+        this.maxDamage = Integer.parseInt(tokens[4].trim());
+        this.speed = Float.parseFloat(tokens[5].trim());
+        this.range = Float.parseFloat(tokens[6].trim());
+        if (this.type == Type.MELEE) {
             texture = Assets.getInstance().getAtlas().findRegion("weaponMelee");
         } else {
             texture = Assets.getInstance().getAtlas().findRegion("weaponRanged");
         }
-        this.title = title;
-        this.minDamage = minDamage;
-        this.maxDamage = maxDamage;
-        this.speed = speed;
-        this.range = range;
-        this.active = true;
     }
 
-    public static Weapon createSimpleRangedWeapon() {
-        return new Weapon(
-                Type.RANGED,
-                "Bow",
-                MathUtils.random(1, 2),
-                MathUtils.random(3, 5),
-                0.5f,
-                150.0f
-        );
+    public void copyFrom(Weapon from) {
+        this.type = from.type;
+        this.weaponClass = from.weaponClass;
+        this.title = from.title;
+        this.range = from.range;
+        this.maxDamage = from.maxDamage;
+        this.minDamage = from.minDamage;
+        this.speed = from.speed;
+        this.texture = from.texture;
     }
 
-    public static Weapon createSimpleMeleeWeapon() {
-        return new Weapon(
-                Type.MELEE,
-                "Sword",
-                MathUtils.random(1, 2),
-                MathUtils.random(3, 4),
-                0.4f,
-                60.0f
-        );
+    @Override
+    public void render(SpriteBatch batch, BitmapFont font) {
+        batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, 0.8f, 0.8f, 0.0f);
     }
-
 }

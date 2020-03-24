@@ -15,51 +15,27 @@ public class Monster extends GameCharacter implements Poolable, MapElement {
     }
 
     public Monster(GameController gc) {
-        super(gc, 20, 100.0f);
+        super(gc, 20, 80.0f);
         this.textures = new TextureRegion(Assets.getInstance().getAtlas().findRegion("dwarf")).split(60, 60);
         this.changePosition(800.0f, 300.0f);
         this.dst.set(this.position);
         this.visionRadius = 160.0f;
-        if (MathUtils.random(100) < 30) {
-            this.weapon = Weapon.createSimpleRangedWeapon();
-        } else {
-            this.weapon = Weapon.createSimpleMeleeWeapon();
-        }
+        this.weapon = gc.getWeaponsController().getOneFromAnyPrototype();
     }
 
     public void generateMe() {
         do {
             changePosition(MathUtils.random(0, 1280), MathUtils.random(0, 720));
         } while (!gc.getMap().isGroundPassable(position));
-        hpMax = 20;
+        hpMax = 80;
         hp = hpMax;
     }
 
     @Override
     public void onDeath() {
         super.onDeath();
-        if(MathUtils.random(1, 100) < 60){
-            gc.getWeaponsController().setup(position.x -30, position.y - 30);
-            gc.getItemsController().setup(position.x + 30, position.y + 30);
-        }else gc.getWeaponsController().setup(position.x, position.y);
-    }
-
-    @Override
-    public void render(SpriteBatch batch, BitmapFont font) {
-        TextureRegion currentRegion = textures[0][getCurrentFrameIndex()];
-        if (dst.x > position.x) {
-            if (currentRegion.isFlipX()) {
-                currentRegion.flip(true, false);
-            }
-        } else {
-            if (!currentRegion.isFlipX()) {
-                currentRegion.flip(true, false);
-            }
-        }
-        batch.draw(currentRegion, position.x - 30, position.y - 30, 30, 30, 60, 60, 2, 2, 0);
-        if (hp < hpMax) {
-            batch.draw(textureHp, position.x - 30, position.y + 30, 60 * ((float) hp / hpMax), 12);
-        }
+        gc.getWeaponsController().setup(position.x, position.y);
+        gc.getPowerUpsController().setup(position.x, position.y);
     }
 
     public void update(float dt) {

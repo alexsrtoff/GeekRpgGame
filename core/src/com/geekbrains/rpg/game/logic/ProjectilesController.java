@@ -6,14 +6,16 @@ import com.geekbrains.rpg.game.logic.utils.ObjectPool;
 import com.geekbrains.rpg.game.screens.utils.Assets;
 
 public class ProjectilesController extends ObjectPool<Projectile> {
+    private GameController gc;
     private TextureRegion projectileTextureRegion;
 
     @Override
     protected Projectile newObject() {
-        return new Projectile();
+        return new Projectile(gc);
     }
 
-    public ProjectilesController() {
+    public ProjectilesController(GameController gc) {
+        this.gc = gc;
         this.projectileTextureRegion = Assets.getInstance().getAtlas().findRegion("arrow");
     }
 

@@ -1,6 +1,5 @@
 package com.geekbrains.rpg.game.logic;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.geekbrains.rpg.game.logic.utils.ObjectPool;
 
 public class MonstersController extends ObjectPool<Monster> {

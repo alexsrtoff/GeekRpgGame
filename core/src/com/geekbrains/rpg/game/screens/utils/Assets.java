@@ -33,23 +33,20 @@ public class Assets {
         assetManager = new AssetManager();
     }
 
-
-
     public void loadAssets(ScreenManager.ScreenType type) {
         switch (type) {
             case MENU:
                 assetManager.load("images/game.pack", TextureAtlas.class);
                 createStandardFont(14);
+                createStandardFont(12);
                 createStandardFont(24);
                 createStandardFont(72);
                 break;
             case GAME:
                 assetManager.load("images/game.pack", TextureAtlas.class);
-
-                createStandardFont(32);
-                createStandardFont(24);
+                createStandardFont(14);
                 createStandardFont(12);
-
+                createStandardFont(32);
                 break;
         }
     }
