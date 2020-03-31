@@ -1,10 +1,11 @@
 package com.geekbrains.rpg.game.logic;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.geekbrains.rpg.game.screens.GameScreen;
 import com.geekbrains.rpg.game.screens.ScreenManager;
+import com.geekbrains.rpg.game.screens.utils.Assets;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,9 @@ public class GameController {
     private MonstersController monstersController;
     private WeaponsController weaponsController;
     private SpecialEffectsController specialEffectsController;
+    private InfoController infoController;
     private List<GameCharacter> allCharacters;
+    private Music music;
     private Map map;
     private Hero hero;
     private Vector2 tmp, tmp2;
@@ -58,6 +61,10 @@ public class GameController {
         return projectilesController;
     }
 
+    public InfoController getInfoController() {
+        return infoController;
+    }
+
     public WeaponsController getWeaponsController() {
         return weaponsController;
     }
@@ -67,13 +74,17 @@ public class GameController {
         this.projectilesController = new ProjectilesController(this);
         this.weaponsController = new WeaponsController(this);
         this.powerUpsController = new PowerUpsController(this);
+        this.infoController = new InfoController();
         this.hero = new Hero(this);
         this.map = new Map();
-        this.monstersController = new MonstersController(this, 1);
+        this.monstersController = new MonstersController(this, 25);
         this.specialEffectsController = new SpecialEffectsController();
         this.tmp = new Vector2(0, 0);
         this.tmp2 = new Vector2(0, 0);
         this.mouse = new Vector2(0, 0);
+        this.music = Gdx.audio.newMusic(Gdx.files.internal("audio/music.wav"));
+        this.music.setLooping(true);
+//         this.music.play();
     }
 
     public void update(float dt) {
@@ -92,6 +103,7 @@ public class GameController {
         weaponsController.update(dt);
         powerUpsController.update(dt);
         specialEffectsController.update(dt);
+        infoController.update(dt);
     }
 
     public void collideUnits(GameCharacter u1, GameCharacter u2) {
@@ -160,5 +172,10 @@ public class GameController {
                 p.consume(hero);
             }
         }
+    }
+
+    public void dispose() {
+        hero.dispose();
+        music.dispose();
     }
 }

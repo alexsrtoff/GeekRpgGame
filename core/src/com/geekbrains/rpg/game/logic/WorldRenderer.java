@@ -22,7 +22,7 @@ public class WorldRenderer {
     private GameController gc;
     private SpriteBatch batch;
     private BitmapFont font14;
-    private BitmapFont font32;
+    private BitmapFont font24;
     private List<MapElement>[] drawables;
     private Vector2 pov;
 
@@ -35,7 +35,7 @@ public class WorldRenderer {
     public WorldRenderer(GameController gameController, SpriteBatch batch) {
         this.gc = gameController;
         this.font14 = Assets.getInstance().getAssetManager().get("fonts/font14.ttf");
-        this.font32 = Assets.getInstance().getAssetManager().get("fonts/font32.ttf");
+        this.font24 = Assets.getInstance().getAssetManager().get("fonts/font24.ttf");
         this.batch = batch;
         this.pov = new Vector2(0, 0);
         this.drawables = new ArrayList[Map.MAP_CELLS_HEIGHT];
@@ -117,6 +117,7 @@ public class WorldRenderer {
             }
         }
         gc.getSpecialEffectsController().render(batch);
+        gc.getInfoController().render(batch, font24);
         batch.end();
         frameBuffer.end();
 
@@ -125,8 +126,8 @@ public class WorldRenderer {
         batch.begin();
         batch.setShader(shaderProgram);
         shaderProgram.setUniformf(shaderProgram.getUniformLocation("time"), gc.getWorldTimer());
-        shaderProgram.setUniformf(shaderProgram.getUniformLocation("px"), pov.x / 1280.0f);
-        shaderProgram.setUniformf(shaderProgram.getUniformLocation("py"), pov.y / 720.0f);
+        shaderProgram.setUniformf(shaderProgram.getUniformLocation("px"), pov.x / ScreenManager.WORLD_WIDTH);
+        shaderProgram.setUniformf(shaderProgram.getUniformLocation("py"), pov.y / ScreenManager.WORLD_HEIGHT);
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.draw(frameBufferRegion, 0, 0);
@@ -135,7 +136,7 @@ public class WorldRenderer {
         batch.setShader(null);
 
         batch.begin();
-        gc.getHero().renderGUI(batch, font32);
+        gc.getHero().renderGUI(batch, font24);
         batch.end();
 
         ScreenManager.getInstance().pointCameraTo(pov);

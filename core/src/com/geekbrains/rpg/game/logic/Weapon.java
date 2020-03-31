@@ -1,6 +1,5 @@
 package com.geekbrains.rpg.game.logic;
 
-
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -12,6 +11,7 @@ import com.geekbrains.rpg.game.logic.utils.Poolable;
 import com.geekbrains.rpg.game.screens.utils.Assets;
 
 public class Weapon implements MapElement, Poolable, Consumable {
+
 
     public enum WeaponClass {
         SWORD, SPEAR, AXE, MACE, BOW, CROSSBOW;
@@ -63,6 +63,9 @@ public class Weapon implements MapElement, Poolable, Consumable {
     private float range;
     private boolean active;
 
+
+
+
     public void setMinDamage(int minDamage) {
         this.minDamage = minDamage;
     }
@@ -71,13 +74,7 @@ public class Weapon implements MapElement, Poolable, Consumable {
         this.maxDamage = maxDamage;
     }
 
-    public void setSpeed(float speed) {
-        this.speed = speed;
-    }
 
-    public void setRange(float range) {
-        this.range = range;
-    }
 
     @Override
     public boolean isActive() {
@@ -92,9 +89,6 @@ public class Weapon implements MapElement, Poolable, Consumable {
         return position;
     }
 
-    public String getDps() {
-        return String.valueOf((int) ((maxDamage + minDamage) / 2.0f / speed));
-    }
 
     @Override
     public void consume(GameCharacter gameCharacter) {

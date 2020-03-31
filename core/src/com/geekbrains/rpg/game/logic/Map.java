@@ -18,14 +18,18 @@ public class Map {
             this.scale = MathUtils.random(0.7f, 1.4f);
             this.offset = MathUtils.random(-12, 12);
             this.isAirPassable = false;
+            if(this.index == 4 || this.index == 6) {
+                this.isAirPassable = true;
+            }
         }
     }
 
-    public static final int MAP_CELLS_WIDTH = 24;
-    public static final int MAP_CELLS_HEIGHT = 16;
+    public static final int MAP_CELLS_WIDTH = 40;
+    public static final int MAP_CELLS_HEIGHT = 32;
+    public static final int OBSTACLES_COUNT = 100;
 
     public static final int CELL_WIDTH = 80;
-    public static final int CELL_HEIGHT = 60;
+    public static final int CELL_HEIGHT = 40;
 
     private Obstacle[][] data;
     private TextureRegion grassTexture;
@@ -53,22 +57,22 @@ public class Map {
 
     public Map() {
         this.data = new Obstacle[MAP_CELLS_WIDTH][MAP_CELLS_HEIGHT];
-        for (int i = 0; i < 35; i++) {
+        for (int i = 0; i < OBSTACLES_COUNT; i++) {
             int x = MathUtils.random(MAP_CELLS_WIDTH - 1);
             int y = MathUtils.random(MAP_CELLS_HEIGHT - 1);
             data[x][y] = new Obstacle();
         }
         this.grassTexture = Assets.getInstance().getAtlas().findRegion("grass");
-        this.obstaclesTexture =new TextureRegion(Assets.getInstance().getAtlas().findRegion("trees")).split(80,120)[0];
+        this.obstaclesTexture = new TextureRegion(Assets.getInstance().getAtlas().findRegion("trees")).split(80, 120)[0];
     }
 
     public void renderGround(SpriteBatch batch, int x, int y) {
-        batch.draw(grassTexture, x * CELL_WIDTH, y * CELL_HEIGHT,CELL_WIDTH, CELL_HEIGHT);
+        batch.draw(grassTexture, x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
     }
 
     public void renderUpper(SpriteBatch batch, int x, int y) {
         if (data[x][y] != null) {
-            batch.draw(obstaclesTexture[data[x][y].index], x * CELL_WIDTH + data[x][y].offset, y * CELL_HEIGHT, 40,30,80,120,data[x][y].scale,data[x][y].scale,0);
+            batch.draw(obstaclesTexture[data[x][y].index], x * CELL_WIDTH + data[x][y].offset, y * CELL_HEIGHT, 40, 30, 80, 120, data[x][y].scale, data[x][y].scale, 0);
         }
     }
 }

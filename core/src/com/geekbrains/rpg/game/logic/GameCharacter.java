@@ -1,5 +1,6 @@
 package com.geekbrains.rpg.game.logic;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -7,9 +8,12 @@ import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.geekbrains.rpg.game.logic.utils.MapElement;
-import com.geekbrains.rpg.game.logic.utils.Poolable;
-import com.geekbrains.rpg.game.screens.GameScreen;
 import com.geekbrains.rpg.game.screens.utils.Assets;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class GameCharacter implements MapElement {
     public enum State {
@@ -26,8 +30,6 @@ public abstract class GameCharacter implements MapElement {
 
     protected State state;
     protected float stateTimer;
-    protected int damage;
-    protected Message message;
 
     protected GameCharacter lastAttacker;
     protected GameCharacter target;
@@ -49,16 +51,23 @@ public abstract class GameCharacter implements MapElement {
     protected float speed;
     protected int hp, hpMax;
     protected int coins;
+    protected int exp;
+    protected int nextLevelExp;
+    protected int levelPower;
+    protected int level;
 
     protected Weapon weapon;
 
-    public int getDamage() {
-        return damage;
-    }
+    protected List<String> expLevels;
+
+
+
+
 
     public void addCoins(int amount) {
         coins += amount;
     }
+
 
     @Override
     public float getY() {
@@ -77,12 +86,13 @@ public abstract class GameCharacter implements MapElement {
         return weapon;
     }
 
-    public void restoreHp(float percent) {
+    public int restoreHp(float percent) {
         int amount = (int) (hpMax * percent);
-        hp += amount;
-        if (hp > hpMax) {
-            hp = hpMax;
+        if (hp + amount > hpMax) {
+            amount = hpMax - hp;
         }
+        hp += amount;
+        return amount;
     }
 
     public void changePosition(float x, float y) {
@@ -133,8 +143,10 @@ public abstract class GameCharacter implements MapElement {
         this.stateTimer = 1.0f;
         this.timePerFrame = 0.2f;
         this.target = null;
-        this.message = new Message();
-
+        this.exp = 0;
+        this.level = 1;
+        this.nextLevelExp = 1000;
+        this.levelPower = 0;
     }
 
     public int getCurrentFrameIndex() {
@@ -160,15 +172,62 @@ public abstract class GameCharacter implements MapElement {
                 if (weapon.getType() == Weapon.Type.MELEE) {
                     tmp.set(target.position).sub(position);
                     gc.getSpecialEffectsController().setupSwordSwing(position.x, position.y, tmp.angle());
-                    target.takeDamage(this,weapon.generateDamage());
+                    target.takeDamage(this, weapon.generateDamage() + levelPower);
+                    addExp();
                 }
                 if (weapon.getType() == Weapon.Type.RANGED && target != null) {
-                    gc.getProjectilesController().setup(this, position.x, position.y, target.getPosition().x, target.getPosition().y, weapon.generateDamage());
+                    gc.getProjectilesController().setup(this, position.x, position.y, target.getPosition().x, target.getPosition().y, weapon.generateDamage() + levelPower);
+                    addExp();
                 }
             }
         }
         slideFromWall(dt);
     }
+
+    private void addExp() {
+        if(exp >= 12001){
+            exp = 12001;
+            this.level = 5;
+            this.nextLevelExp = 12001;
+            this.levelPower = 8;
+        }else {
+            exp += MathUtils.random(level + 20, level + 50);
+            checkLevel(exp);
+        }
+    }
+
+    private void checkLevel(int exp) {
+        expLevels = new ArrayList<>();
+        BufferedReader reader = null;
+        try {
+            reader = Gdx.files.internal("data/experience.csv").reader(8192);
+            reader.readLine();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                expLevels.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        for (int i = 0; i < expLevels.size(); i++) {
+            String[] tokens = expLevels.get(i).split(",");
+            if(exp >= Integer.parseInt(tokens[1].trim()) && exp < Integer.parseInt(tokens[2].trim())){
+                this.level = Integer.parseInt(tokens[0].trim());
+                this.nextLevelExp = Integer.parseInt(tokens[2].trim());
+                this.levelPower = Integer.parseInt(tokens[3].trim());
+
+            }
+
+        }
+
+    }
+
 
     public void moveToDst(float dt) {
         tmp.set(dst).sub(position).nor().scl(speed);
@@ -194,20 +253,24 @@ public abstract class GameCharacter implements MapElement {
     public boolean takeDamage(GameCharacter attacker, int amount) {
         lastAttacker = attacker;
         hp -= amount;
-        damage = -amount;
         damageTimer += 0.4f;
-        message.setup(position.x, position.y, String.valueOf(-amount));
         if (damageTimer > 1.0f) {
             damageTimer = 1.0f;
-
-
         }
         if (hp <= 0) {
             onDeath();
+            restoreLevel();
             return true;
         }
         return false;
     }
+
+    private void restoreLevel() {
+        this.exp = 0;
+        this.level = 1;
+        this.nextLevelExp = 1000;
+        this.levelPower = 0;
+            }
 
     public void resetAttackState() {
         dst.set(position);
@@ -255,12 +318,6 @@ public abstract class GameCharacter implements MapElement {
         batch.draw(textureHp, position.x - 30 + MathUtils.random(-shock, shock), position.y + 30 + MathUtils.random(-shock, shock), 60 * ((float) hp / hpMax), 10);
         batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         font.draw(batch, String.valueOf(hp), position.x - 30 + MathUtils.random(-shock, shock), position.y + 42 + MathUtils.random(-shock, shock), 60, 1, false);
-//        if(damage!=0) {
-//            font.draw(batch, String.valueOf(damage), position.x , position.y + 32, 60, 1, false);
-//        }
-//        System.out.println(message.getMessage());
-
-        font.draw(batch, message.getMessage(), message.getPosition().x , message.getPosition().y + 32, 60, 1, false);
-
+        font.draw(batch, "Level: " + String.valueOf(level), position.x - 32, position.y + 58);
     }
 }

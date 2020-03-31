@@ -5,11 +5,6 @@ import java.util.List;
 
 public abstract class ObjectPool<T extends Poolable> {
     protected List<T> activeList;
-
-    public List<T> getFreeList() {
-        return freeList;
-    }
-
     protected List<T> freeList;
 
     public List<T> getActiveList() {
